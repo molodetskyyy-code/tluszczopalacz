@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tłuszcz🔥">
+<meta name="theme-color" content="#0f0f0f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Tłuszczopalacz 🔥</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #1a1a1a;
+    --bg3: #242424;
+    --surface: #1e1e1e;
+    --border: #2e2e2e;
+    --fire: #ff6b35;
+    --fire2: #ff9500;
+    --fire3: #ffcc02;
+    --green: #30d158;
+    --red: #ff453a;
+    --blue: #0a84ff;
+    --text: #f5f5f5;
+    --text2: #a0a0a0;
+    --text3: #606060;
+    --safe: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg); }
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    padding-bottom: calc(80px + var(--safe));
+  }
+  /* NAV */
+  .nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(15,15,15,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding-bottom: var(--safe);
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 10px 0 8px;
+    background: none; border: none; color: var(--text3);
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    cursor: pointer; transition: color 0.2s;
+    gap: 4px;
+  }
+  .nav-btn svg { width: 22px; height: 22px; }
+  .nav-btn.active { color: var(--fire); }
+
+  /* SCREENS */
+  .screen { display: none; padding: 0 0 20px; min-height: 100dvh; }
+  .screen.active { display: block; }
+
+  /* HEADER */
+  .header {
+    padding: 56px 20px 20px;
+    background: linear-gradient(180deg, rgba(255,107,53,0.08) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-label { font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--fire); margin-bottom: 4px; }
+  .header-title { font-size: 28px; font-weight: 800; line-height: 1.1; }
+  .header-sub { font-size: 14px; color: var(--text2); margin-top: 4px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin: 12px 16px;
+  }
+  .card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; }
+
+  /* BIG NUMBER */
+  .big-num { font-size: 48px; font-weight: 800; line-height: 1; }
+  .big-num span { font-size: 18px; font-weight: 600; color: var(--text2); margin-left: 4px; }
+
+  /* RING */
+  .ring-wrap { display: flex; align-items: center; gap: 20px; }
+  .ring-info { flex: 1; }
+  .ring-svg { width: 90px; height: 90px; flex-shrink: 0; }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 16px 0; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px;
+  }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+  .stat-val { font-size: 22px; font-weight: 800; }
+  .stat-unit { font-size: 12px; font-weight: 600; color: var(--text2); }
+
+  /* PILL */
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    border-radius: 100px; padding: 6px 14px;
+    font-size: 13px; font-weight: 700;
+  }
+  .pill-green { background: rgba(48,209,88,0.15); color: var(--green); }
+  .pill-red { background: rgba(255,69,58,0.15); color: var(--red); }
+  .pill-orange { background: rgba(255,107,53,0.15); color: var(--fire); }
+
+  /* FORM */
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; display: block; }
+  .form-input {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 600;
+    color: var(--text); outline: none; transition: border-color 0.2s;
+    -webkit-appearance: none; appearance: none;
+  }
+  .form-input:focus { border-color: var(--fire); }
+  .form-select {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 600;
+    color: var(--text); outline: none;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23606060' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+  }
+
+  /* BUTTON */
+  .btn {
+    width: 100%; padding: 15px; border-radius: 12px; border: none;
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800;
+    letter-spacing: 0.05em; cursor: pointer; transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .btn-fire {
+    background: linear-gradient(135deg, var(--fire), var(--fire2));
+    color: #fff;
+  }
+  .btn-fire:active { transform: scale(0.97); opacity: 0.9; }
+  .btn-ghost {
+    background: var(--bg3); color: var(--text2);
+    border: 1px solid var(--border);
+  }
+
+  /* WARNING */
+  .warning {
+    background: rgba(255,69,58,0.12); border: 1px solid rgba(255,69,58,0.3);
+    border-radius: 12px; padding: 14px;
+    font-size: 13px; font-weight: 600; color: var(--red);
+    margin: 0 16px 12px;
+  }
+
+  /* LOG ITEM */
+  .log-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-date { font-size: 13px; font-weight: 700; }
+  .log-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .log-right { text-align: right; }
+  .log-kcal { font-size: 18px; font-weight: 800; }
+  .log-fat { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  /* CHART */
+  .chart-wrap { padding: 0 4px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+  .chart-bar { flex: 1; border-radius: 4px 4px 0 0; transition: height 0.4s ease; min-height: 2px; }
+
+  /* PROGRESS BAR */
+  .prog-bar-wrap { background: var(--bg3); border-radius: 100px; height: 8px; overflow: hidden; margin-top: 8px; }
+  .prog-bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--fire), var(--fire2)); transition: width 0.5s ease; }
+
+
+  /* CALENDAR */
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-head { text-align: center; font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; padding-bottom: 6px; }
+  .cal-day {
+    min-height: 52px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--bg3); color: var(--text); padding: 6px;
+    font-family: 'Syne', sans-serif; text-align: left; cursor: pointer;
+  }
+  .cal-day.empty { opacity: .25; cursor: default; }
+  .cal-day.today { border-color: var(--fire); box-shadow: 0 0 0 1px rgba(255,107,53,.35); }
+  .cal-day.selected { background: rgba(255,107,53,.18); border-color: var(--fire); }
+  .cal-num { font-size: 12px; font-weight: 800; }
+  .cal-mini { font-size: 10px; margin-top: 5px; color: var(--text2); line-height: 1.1; }
+  .cal-good .cal-mini { color: var(--green); }
+  .cal-bad .cal-mini { color: var(--red); }
+
+  /* MONO */
+  .mono { font-family: 'Syne Mono', monospace; }
+
+  /* SECTION DIVIDER */
+  .section-head { padding: 16px 16px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); }
+
+  /* TODAY HERO */
+  .today-hero {
+    margin: 12px 16px;
+    background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(255,149,0,0.08));
+    border: 1px solid rgba(255,107,53,0.3);
+    border-radius: 20px; padding: 22px;
+  }
+
+  /* ALERT */
+  .alert-banner {
+    background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.25);
+    border-radius: 12px; padding: 12px 16px;
+    font-size: 13px; font-weight: 600; color: var(--fire2);
+    margin: 8px 16px;
+  }
+
+  /* DIVIDER */
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+  /* INPUT LARGE */
+  .kcal-input-wrap {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg3); border: 2px solid var(--border);
+    border-radius: 14px; padding: 14px 16px;
+    margin-top: 8px;
+  }
+  .kcal-input-wrap:focus-within { border-color: var(--fire); }
+  .kcal-input-icon { font-size: 24px; }
+  .kcal-big-input {
+    flex: 1; background: none; border: none; outline: none;
+    font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800;
+    color: var(--text); -webkit-appearance: none; appearance: none;
+    width: 100%;
+  }
+  .kcal-big-input::placeholder { color: var(--text3); }
+
+  /* SHIMMER loading */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* FIRE ANIMATION */
+  @keyframes flicker {
+    0%,100% { transform: scaleY(1) rotate(-1deg); }
+    50% { transform: scaleY(1.05) rotate(1deg); }
+  }
+  .fire-icon { display: inline-block; animation: flicker 1.5s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<!-- SCREENS -->
+<div id="screen-setup" class="screen active">
+  <div class="header">
+    <div class="header-label">Konfiguracja</div>
+    <div class="header-title">Twój profil <span class="fire-icon">🔥</span></div>
+    <div class="header-sub">Wypełnij raz, aplikacja resztą się zajmie</div>
+  </div>
+  <div style="padding: 16px;">
+    <div class="form-group">
+      <label class="form-label">Płeć</label>
+      <select class="form-select" id="s-gender">
+        <option value="m">Mężczyzna</option>
+        <option value="f">Kobieta</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Wiek (lata)</label>
+      <input type="number" class="form-input" id="s-age" placeholder="np. 30" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Wzrost (cm)</label>
+      <input type="number" class="form-input" id="s-height" placeholder="np. 175" inputmode="decimal">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Waga (kg)</label>
+      <input type="number" class="form-input" id="s-weight" placeholder="np. 80" inputmode="decimal">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Poziom aktywności</label>
+      <select class="form-select" id="s-activity">
+        <option value="1.2">Siedzący (zero sportu)</option>
+        <option value="1.375">Lekki (1–2×/tydzień)</option>
+        <option value="1.55" selected>Umiarkowany (3–5×/tydzień)</option>
+        <option value="1.725">Aktywny (6–7×/tydzień)</option>
+        <option value="1.9">Bardzo aktywny (praca fizyczna)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cel: tłuszcz do spalenia (kg)</label>
+      <input type="number" class="form-input" id="s-goal" placeholder="np. 2" inputmode="decimal" step="0.1">
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="form-group">
+        <label class="form-label">Plan od</label>
+        <input type="date" class="form-input" id="s-date-from">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Plan do</label>
+        <input type="date" class="form-input" id="s-date-to">
+      </div>
+    </div>
+    <div id="setup-warning" class="warning" style="display:none; margin: 0 0 14px;"></div>
+    <button class="btn btn-fire" onclick="saveProfile()">ZAPISZ I ZACZNIJ</button>
+  </div>
+</div>
+
+<!-- DZIŚ -->
+<div id="screen-today" class="screen">
+  <div class="header">
+    <div class="header-label" id="today-date-label">Poniedziałek, 1 Stycznia</div>
+    <div class="header-title">Dzisiaj <span class="fire-icon">🔥</span></div>
+    <div class="header-sub" id="today-days-left"></div>
+  </div>
+
+  <div id="today-warning" class="warning" style="display:none;"></div>
+
+  <div class="today-hero">
+    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fire); margin-bottom: 8px;">Limit kalorii na dziś</div>
+    <div class="big-num" id="today-limit">—<span>kcal</span></div>
+    <div style="margin-top: 10px;" id="today-status-pill"></div>
+  </div>
+
+  <div class="card" id="plan-date-card" style="margin-top: 0;">
+    <div class="card-title">Zakres planu</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;">
+      <div><span style="color:var(--text3);">Plan od</span><br><strong id="today-plan-from">—</strong></div>
+      <div><span style="color:var(--text3);">Plan do</span><br><strong id="today-plan-to" style="color:var(--fire2)">—</strong></div>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn btn-ghost" style="font-size:12px; padding:10px;" onclick="editProfile()">ZMIEŃ DATĘ KOŃCOWĄ</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">TDEE</div>
+      <div class="stat-val" id="today-tdee">—</div>
+      <div class="stat-unit">kcal/dzień</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Deficyt dzienny</div>
+      <div class="stat-val" id="today-deficit-need">—</div>
+      <div class="stat-unit">kcal</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Zjedzone</div>
+      <div class="stat-val" id="today-eaten" style="color: var(--fire2);">—</div>
+      <div class="stat-unit">kcal</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Zostało</div>
+      <div class="stat-val" id="today-remaining">—</div>
+      <div class="stat-unit">kcal</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 14px;">
+    <div class="card-title">Spalony tłuszcz dziś</div>
+    <div class="ring-wrap">
+      <svg class="ring-svg" viewBox="0 0 90 90">
+        <circle cx="45" cy="45" r="36" fill="none" stroke="var(--bg3)" stroke-width="8"/>
+        <circle id="ring-circle" cx="45" cy="45" r="36" fill="none" stroke="var(--fire)" stroke-width="8"
+          stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226"
+          transform="rotate(-90 45 45)" style="transition: stroke-dashoffset 0.6s ease;"/>
+      </svg>
+      <div class="ring-info">
+        <div class="big-num" id="today-fat-g">0<span>g</span></div>
+        <div style="font-size: 13px; color: var(--text2); margin-top: 4px;" id="today-fat-sub">spalonego tłuszczu</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGOWANIE -->
+  <div id="log-form-wrap" class="card">
+    <div class="card-title">Wpisz kalorie na dziś</div>
+    <div class="kcal-input-wrap">
+      <span class="kcal-input-icon">🍽️</span>
+      <input type="number" class="kcal-big-input" id="log-kcal" placeholder="0" inputmode="numeric">
+    </div>
+    <div style="margin-top: 10px; display: flex; gap: 8px;">
+      <div style="flex:1;">
+        <label class="form-label" style="margin-bottom:4px;">Waga (opcjonalnie)</label>
+        <input type="number" class="form-input" id="log-weight" placeholder="kg" inputmode="decimal" step="0.1" style="padding: 10px 14px;">
+      </div>
+    </div>
+    <div style="margin-top: 10px;">
+      <label class="form-label" style="margin-bottom:4px;">Notatka (opcjonalnie)</label>
+      <input type="text" class="form-input" id="log-note" placeholder="np. cheat meal" style="padding: 10px 14px;">
+    </div>
+    <div style="margin-top: 14px;">
+      <button class="btn btn-fire" onclick="logDay()">ZAPISZ DZIEŃ</button>
+    </div>
+  </div>
+  <div id="log-done-wrap" class="card" style="display:none;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+      <div class="card-title" style="margin:0;">Dzień zapisany ✓</div>
+      <button class="btn btn-ghost" style="width:auto; padding: 8px 14px; font-size:12px;" onclick="editToday()">EDYTUJ</button>
+    </div>
+    <div id="log-done-summary" style="font-size: 14px; color: var(--text2);"></div>
+  </div>
+</div>
+
+<!-- MIESIĄC -->
+<div id="screen-month" class="screen">
+  <div class="header">
+    <div class="header-label" id="month-label">Maj 2026</div>
+    <div class="header-title">Postęp miesiąca</div>
+    <div class="header-sub" id="month-sub"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Spalony tłuszcz</div>
+    <div class="ring-wrap">
+      <svg class="ring-svg" viewBox="0 0 90 90" style="width:100px; height:100px;">
+        <circle cx="45" cy="45" r="36" fill="none" stroke="var(--bg3)" stroke-width="8"/>
+        <circle id="month-ring" cx="45" cy="45" r="36" fill="none" stroke="var(--fire2)" stroke-width="8"
+          stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226"
+          transform="rotate(-90 45 45)" style="transition: stroke-dashoffset 0.6s ease;"/>
+      </svg>
+      <div class="ring-info">
+        <div class="big-num" id="month-fat-done" style="font-size:36px;">0<span style="font-size:16px;">g</span></div>
+        <div style="font-size: 13px; color: var(--text2); margin-top: 2px;">z <span id="month-fat-goal">—</span> g celu</div>
+        <div style="margin-top: 8px;" id="month-on-track"></div>
+      </div>
+    </div>
+    <div class="prog-bar-wrap" style="margin-top: 14px;">
+      <div class="prog-bar" id="month-prog-bar" style="width: 0%"></div>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-top: 6px;">
+      <span style="font-size:11px; color: var(--text3);">0%</span>
+      <span id="month-prog-pct" style="font-size:11px; color: var(--fire); font-weight:700;"></span>
+      <span style="font-size:11px; color: var(--text3);">100%</span>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Deficyt zrobiony</div>
+      <div class="stat-val" id="m-deficit-done">0</div>
+      <div class="stat-unit">kcal</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Deficyt cel</div>
+      <div class="stat-val" id="m-deficit-goal">—</div>
+      <div class="stat-unit">kcal</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Dni do końca planu</div>
+      <div class="stat-val" id="m-days-left">—</div>
+      <div class="stat-unit">dni</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Limit jutro</div>
+      <div class="stat-val" id="m-tomorrow-limit">—</div>
+      <div class="stat-unit">kcal</div>
+    </div>
+  </div>
+
+  <div class="section-head">Kalendarz</div>
+  <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;">
+      <button class="btn btn-ghost" style="width:auto; padding:10px 12px; font-size:12px;" onclick="changeCalendarMonth(-1)">‹</button>
+      <div id="calendar-title" style="font-size:16px; font-weight:800; text-align:center; flex:1;">—</div>
+      <button class="btn btn-ghost" style="width:auto; padding:10px 12px; font-size:12px;" onclick="changeCalendarMonth(1)">›</button>
+    </div>
+    <div id="calendar-grid" class="calendar-grid"></div>
+  </div>
+
+  <div class="section-head">Wybrany dzień</div>
+  <div class="card" id="selected-day-card">
+    <div style="color: var(--text3); font-size: 14px; text-align: center; padding: 12px 0;">Kliknij dzień w kalendarzu</div>
+  </div>
+
+  <div class="section-head">Historia kalorii</div>
+  <div class="card" style="padding: 14px 18px;">
+    <div class="chart-wrap" id="month-chart"></div>
+  </div>
+
+  <div class="section-head">Wszystkie dni</div>
+  <div class="card" id="month-log-list">
+    <div style="color: var(--text3); font-size: 14px; text-align: center; padding: 20px 0;">Brak wpisów w tym miesiącu</div>
+  </div>
+</div>
+
+<!-- PROFIL -->
+<div id="screen-profile" class="screen">
+  <div class="header">
+    <div class="header-label">Ustawienia</div>
+    <div class="header-title">Profil</div>
+  </div>
+  <div id="profile-display" class="card">
+    <div id="profile-content"></div>
+    <div style="margin-top: 14px; display: flex; gap: 8px;">
+      <button class="btn btn-ghost" style="font-size:13px;" onclick="editProfile()">EDYTUJ PROFIL</button>
+      <button class="btn btn-ghost" style="font-size:13px; color: var(--red);" onclick="resetMonth()">NOWY MIESIĄC</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 0;">
+    <div class="card-title">Jak dodać na ekran iPhone'a</div>
+    <div style="font-size: 14px; color: var(--text2); line-height: 1.7;">
+      1. Otwórz tę stronę w Safari<br>
+      2. Kliknij ikonę <strong style="color: var(--text)">Udostępnij</strong> (kwadrat ze strzałką ↑)<br>
+      3. Wybierz <strong style="color: var(--text)">"Dodaj do ekranu głównego"</strong><br>
+      4. Kliknij <strong style="color: var(--text)">Dodaj</strong><br><br>
+      <span style="color: var(--fire); font-weight: 700;">🔥 Gotowe! Aplikacja działa offline.</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 0;">
+    <div class="card-title">Informacje</div>
+    <div style="font-size: 13px; color: var(--text3); line-height: 1.8;">
+      1 kg tłuszczu = 8 000 kcal<br>
+      BMR obliczany wzorem Mifflin-St Jeor<br>
+      Min. bezpieczny limit: <span id="safe-min-info">—</span> kcal<br>
+      Dane zapisane lokalnie na urządzeniu
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav">
+  <button class="nav-btn active" id="nav-today" onclick="showScreen('today')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+    Dziś
+  </button>
+  <button class="nav-btn" id="nav-month" onclick="showScreen('month')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Miesiąc
+  </button>
+  <button class="nav-btn" id="nav-profile" onclick="showScreen('profile')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Profil
+  </button>
+</nav>
+
+<script>
+// ─── STORAGE ────────────────────────────────────────────────────────────────
+const DB = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+  del: k => localStorage.removeItem(k)
+};
+
+// ─── DATE HELPERS ────────────────────────────────────────────────────────────
+const today = () => {
+  const d = new Date();
+  return { y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate() };
+};
+const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
+const daysLeft = () => {
+  const { y, m, d } = today();
+  return daysInMonth(y, m) - d + 1; // include today
+};
+const daysLeftAfterToday = () => daysLeft() - 1;
+const todayKey = () => {
+  const { y, m, d } = today();
+  return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+};
+const monthKey = () => {
+  const { y, m } = today();
+  return `${y}-${String(m).padStart(2,'0')}`;
+};
+const toDateKey = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const endOfCurrentMonthKey = () => {
+  const { y, m } = today();
+  return `${y}-${String(m).padStart(2,'0')}-${String(daysInMonth(y,m)).padStart(2,'0')}`;
+};
+const parseDateKey = key => {
+  const [y,m,d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+const diffDaysInclusive = (fromKey, toKey) => Math.floor((parseDateKey(toKey) - parseDateKey(fromKey)) / 86400000) + 1;
+const getHistory = () => DB.get('history_all') || DB.get('history_' + monthKey()) || {};
+const setHistory = history => DB.set('history_all', history);
+
+const MONTHS = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+const DAYS = ['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
+let selectedCalendarKey = todayKey();
+let calendarView = { y: today().y, m: today().m };
+
+// ─── BMR / TDEE ──────────────────────────────────────────────────────────────
+function calcBMR(p) {
+  // Mifflin-St Jeor
+  if (p.gender === 'm') {
+    return 10 * p.weight + 6.25 * p.height - 5 * p.age + 5;
+  } else {
+    return 10 * p.weight + 6.25 * p.height - 5 * p.age - 161;
+  }
+}
+function calcTDEE(p) {
+  return Math.round(calcBMR(p) * p.activity);
+}
+const safeMin = p => p.gender === 'f' ? 1200 : 1500;
+
+// ─── PLAN CALC ───────────────────────────────────────────────────────────────
+function ensurePlanMeta(profile) {
+  const tk = todayKey();
+  if (!profile.planStartKey) profile.planStartKey = tk;
+  if (!profile.planEndKey) profile.planEndKey = endOfCurrentMonthKey();
+  if (profile.planEndKey < profile.planStartKey) profile.planEndKey = profile.planStartKey;
+  profile.planDaysTotal = Math.max(1, diffDaysInclusive(profile.planStartKey, profile.planEndKey));
+  DB.set('profile', profile);
+  return profile;
+}
+
+function isInPlanRange(profile, key) {
+  profile = ensurePlanMeta(profile);
+  return key >= profile.planStartKey && key <= profile.planEndKey;
+}
+
+function daysLeftInPlan(profile) {
+  profile = ensurePlanMeta(profile);
+  const start = todayKey() > profile.planStartKey ? todayKey() : profile.planStartKey;
+  if (start > profile.planEndKey) return 0;
+  return Math.max(0, diffDaysInclusive(start, profile.planEndKey));
+}
+
+function monthEntries(history) {
+  return Object.entries(history).sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+function basePlanValues(profile) {
+  profile = ensurePlanMeta(profile);
+  const totalDeficitNeeded = profile.goalKg * 8000;
+  const tdee = calcTDEE(profile);
+  const planDaysTotal = Math.max(1, profile.planDaysTotal || daysLeft());
+  const baseDailyDeficit = Math.round(totalDeficitNeeded / planDaysTotal);
+  const baseDailyLimit = Math.round(tdee - baseDailyDeficit);
+  return { tdee, totalDeficitNeeded, planDaysTotal, baseDailyDeficit, baseDailyLimit };
+}
+
+function addDaysKey(key, days) {
+  const d = parseDateKey(key);
+  d.setDate(d.getDate() + days);
+  return toDateKey(d);
+}
+
+function planKeysFrom(profile, fromKey) {
+  profile = ensurePlanMeta(profile);
+  const start = fromKey > profile.planStartKey ? fromKey : profile.planStartKey;
+  const keys = [];
+  if (start > profile.planEndKey) return keys;
+  let d = parseDateKey(start);
+  const end = parseDateKey(profile.planEndKey);
+  while (d <= end) {
+    keys.push(toDateKey(d));
+    d.setDate(d.getDate() + 1);
+  }
+  return keys;
+}
+
+function deficitDoneBeforeDate(profile, history, dateKey) {
+  const base = basePlanValues(profile);
+  return monthEntries(history).reduce((sum, [key, day]) => {
+    if (!isInPlanRange(profile, key)) return sum;
+    if (key >= dateKey) return sum;
+    return sum + (base.tdee - day.kcal);
+  }, 0);
+}
+
+function deficitDoneAll(profile, history) {
+  const base = basePlanValues(profile);
+  return monthEntries(history).reduce((sum, [key, day]) => {
+    if (!isInPlanRange(profile, key)) return sum;
+    return sum + (base.tdee - day.kcal);
+  }, 0);
+}
+
+function remainingUnloggedDaysFrom(profile, history, dateKey) {
+  return planKeysFrom(profile, dateKey).filter(key => !history[key] || key === dateKey).length;
+}
+
+function calcLimitForDate(profile, history, dateKey) {
+  const base = basePlanValues(profile);
+
+  if (!isInPlanRange(profile, dateKey)) {
+    return {
+      dailyDeficit: base.baseDailyDeficit,
+      limit: base.baseDailyLimit,
+      adjustmentPerDay: 0,
+      remainingForThisCalc: 0,
+      deficitBefore: 0
+    };
+  }
+
+  // Najważniejsza logika:
+  // Jeżeli po jakimś dniu zostało +200 kcal albo -200 kcal,
+  // aplikacja NIE wrzuca tego całego na jeden kolejny dzień.
+  // Dzieli różnicę przez wszystkie pozostałe dni planu.
+  let distributionStartKey = dateKey;
+
+  // Dla przyszłych dni pokazujemy aktualny limit dla pozostałych dni,
+  // a nie coraz większy limit im dalej klikniemy w kalendarzu.
+  if (dateKey > todayKey()) {
+    distributionStartKey = history[todayKey()] ? addDaysKey(todayKey(), 1) : todayKey();
+    if (distributionStartKey < profile.planStartKey) distributionStartKey = profile.planStartKey;
+  }
+
+  const deficitBefore = deficitDoneBeforeDate(profile, history, distributionStartKey);
+  const remainingDeficit = base.totalDeficitNeeded - deficitBefore;
+  const daysForDistribution = Math.max(1, planKeysFrom(profile, distributionStartKey).filter(key => !history[key] || key === dateKey).length);
+  const dailyDeficit = Math.round(remainingDeficit / daysForDistribution);
+  const limit = Math.round(base.tdee - dailyDeficit);
+  const adjustmentPerDay = Math.round(limit - base.baseDailyLimit);
+
+  return {
+    dailyDeficit,
+    limit,
+    adjustmentPerDay,
+    remainingForThisCalc: daysForDistribution,
+    deficitBefore
+  };
+}
+function calcDayStats(profile, history, dateKey) {
+  const base = basePlanValues(profile);
+  const limitInfo = calcLimitForDate(profile, history, dateKey);
+  const entry = history[dateKey] || null;
+  const eaten = entry ? entry.kcal : null;
+  const remaining = entry ? limitInfo.limit - eaten : limitInfo.limit;
+  const deficit = entry ? base.tdee - eaten : null;
+  const fatG = entry ? Math.max(0, Math.round(deficit / 8)) : 0;
+  return { ...base, ...limitInfo, bankBefore: limitInfo.adjustmentPerDay, entry, eaten, remaining, deficit, fatG };
+}
+
+function calcPlan(profile, history) {
+  profile = ensurePlanMeta(profile);
+  const base = basePlanValues(profile);
+  const tk = todayKey();
+
+  const deficitDone = deficitDoneAll(profile, history);
+  const todayStats = calcDayStats(profile, history, tk);
+  const deficitRemaining = base.totalDeficitNeeded - deficitDone;
+  const MIN = safeMin(profile);
+  const tooAggressive = todayStats.limit < MIN;
+
+  return {
+    tdee: base.tdee,
+    totalDeficitNeeded: base.totalDeficitNeeded,
+    deficitDone,
+    deficitRemaining,
+    dailyDeficit: todayStats.dailyDeficit,
+    dailyLimit: todayStats.limit,
+    baseDailyLimit: base.baseDailyLimit,
+    baseDailyDeficit: base.baseDailyDeficit,
+    calorieBank: todayStats.adjustmentPerDay,
+    tooAggressive,
+    MIN,
+    daysLeft: daysLeftInPlan(profile),
+    planDaysTotal: base.planDaysTotal
+  };
+}
+
+// ─── SCREEN NAV ──────────────────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const navBtn = document.getElementById('nav-' + name);
+  if (navBtn) navBtn.classList.add('active');
+  document.querySelector('.nav').style.display = name === 'setup' ? 'none' : 'flex';
+  if (name === 'today') renderToday();
+  if (name === 'month') renderMonth();
+  if (name === 'profile') renderProfile();
+  window.scrollTo(0, 0);
+}
+
+// ─── SETUP ───────────────────────────────────────────────────────────────────
+function saveProfile() {
+  const gender = document.getElementById('s-gender').value;
+  const age = parseFloat(document.getElementById('s-age').value);
+  const height = parseFloat(document.getElementById('s-height').value);
+  const weight = parseFloat(document.getElementById('s-weight').value);
+  const activity = parseFloat(document.getElementById('s-activity').value);
+  const goalKg = parseFloat(document.getElementById('s-goal').value);
+  const planStartKey = document.getElementById('s-date-from').value || todayKey();
+  const planEndKey = document.getElementById('s-date-to').value || endOfCurrentMonthKey();
+
+  const warn = document.getElementById('setup-warning');
+  if (!age || !height || !weight || !goalKg || !planStartKey || !planEndKey) {
+    warn.textContent = 'Wypełnij wszystkie pola.';
+    warn.style.display = 'block';
+    return;
+  }
+  if (planEndKey < planStartKey) {
+    warn.textContent = 'Data „do” nie może być wcześniejsza niż data „od”.';
+    warn.style.display = 'block';
+    return;
+  }
+
+  const profile = { gender, age, height, weight, activity, goalKg, planStartKey, planEndKey, planDaysTotal: diffDaysInclusive(planStartKey, planEndKey) };
+  const plan = calcPlan(profile, {});
+
+  if (plan.tooAggressive) {
+    warn.textContent = `⚠️ Cel jest zbyt agresywny. Limit wynosiłby ${plan.dailyLimit} kcal, poniżej bezpiecznego minimum (${plan.MIN} kcal). Wybierz mniejszą ilość tłuszczu lub dłuższy okres.`;
+    warn.style.display = 'block';
+    return;
+  }
+  warn.style.display = 'none';
+
+  DB.set('profile', profile);
+  DB.set('month', monthKey());
+  showScreen('today');
+}
+
+function editProfile() {
+  const p = DB.get('profile');
+  if (!p) return;
+  document.getElementById('s-gender').value = p.gender;
+  document.getElementById('s-age').value = p.age;
+  document.getElementById('s-height').value = p.height;
+  document.getElementById('s-weight').value = p.weight;
+  document.getElementById('s-activity').value = p.activity;
+  document.getElementById('s-goal').value = p.goalKg;
+  document.getElementById('s-date-from').value = p.planStartKey || todayKey();
+  document.getElementById('s-date-to').value = p.planEndKey || endOfCurrentMonthKey();
+  showScreen('setup');
+}
+
+function resetMonth() {
+  if (!confirm('Zresetować dane miesięczne i zacząć od nowa?')) return;
+  DB.del('history_all');
+  DB.del('history_' + monthKey());
+  DB.set('month', monthKey());
+  showScreen('today');
+}
+
+// ─── TODAY ───────────────────────────────────────────────────────────────────
+function renderToday() {
+  const profile = DB.get('profile');
+  if (!profile) { showScreen('setup'); return; }
+
+  const history = getHistory();
+  const plan = calcPlan(profile, history);
+
+  // date labels
+  const now = new Date();
+  document.getElementById('today-date-label').textContent =
+    `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}`;
+  document.getElementById('today-days-left').textContent =
+    `${plan.daysLeft} dni do końca planu (${profile.planEndKey})`;
+  document.getElementById('today-plan-from').textContent = profile.planStartKey;
+  document.getElementById('today-plan-to').textContent = profile.planEndKey;
+
+  document.getElementById('today-tdee').textContent = plan.tdee;
+  document.getElementById('today-deficit-need').textContent = plan.dailyDeficit;
+
+  // warning
+  const warnEl = document.getElementById('today-warning');
+  if (plan.tooAggressive) {
+    warnEl.textContent = `⚠️ Cel jest zbyt agresywny. Limit wynosiłby ${plan.dailyLimit} kcal < ${plan.MIN} kcal (min. bezpieczny). Zmień cel.`;
+    warnEl.style.display = 'block';
+  } else {
+    warnEl.style.display = 'none';
+  }
+
+  const todayEntry = history[todayKey()];
+
+  // Limit for today: if today already logged, recalc for TOMORROW display
+  // For today display: use plan.dailyLimit
+  document.getElementById('today-limit').innerHTML = `${plan.dailyLimit}<span>kcal</span>`;
+
+  if (todayEntry) {
+    const eaten = todayEntry.kcal;
+    const remaining = plan.dailyLimit - eaten;
+    const deficit = plan.tdee - eaten;
+    const fatG = Math.max(0, Math.round(deficit / 8));
+    const theoreticalMonthFatKg = Math.max(0, (deficit * plan.planDaysTotal / 8000)).toFixed(2);
+
+    document.getElementById('today-eaten').textContent = eaten;
+    document.getElementById('today-remaining').textContent = remaining;
+    document.getElementById('today-fat-g').innerHTML = `${fatG}<span>g</span>`;
+
+    // ring
+    const maxFat = plan.dailyDeficit / 8;
+    const pct = Math.min(1, fatG / Math.max(1, maxFat));
+    const circ = 226;
+    document.getElementById('ring-circle').style.strokeDashoffset = circ - pct * circ;
+    document.getElementById('ring-circle').style.stroke = pct >= 1 ? 'var(--green)' : 'var(--fire)';
+
+    const pill = document.getElementById('today-status-pill');
+    if (deficit >= plan.dailyDeficit) {
+      pill.innerHTML = `<span class="pill pill-green">✓ Cel dzienny osiągnięty</span>`;
+      document.getElementById('today-fat-sub').textContent = `tempo: ok. ${theoreticalMonthFatKg} kg/mies.`;
+    } else if (deficit < 0) {
+      pill.innerHTML = `<span class="pill pill-red">↑ Nadwyżka ${Math.abs(deficit)} kcal</span>`;
+      document.getElementById('today-fat-sub').textContent = 'brak deficytu dzisiaj';
+    } else {
+      pill.innerHTML = `<span class="pill pill-orange">↓ Deficyt ${deficit} kcal</span>`;
+      document.getElementById('today-fat-sub').textContent = `tempo: ok. ${theoreticalMonthFatKg} kg/mies.`;
+    }
+
+    // show done state
+    document.getElementById('log-form-wrap').style.display = 'none';
+    document.getElementById('log-done-wrap').style.display = 'block';
+    document.getElementById('log-done-summary').innerHTML =
+      `Zjedzone: <strong style="color:var(--text)">${eaten} kcal</strong> · ` +
+      `Deficyt: <strong style="color:var(--fire)">${deficit} kcal</strong> · ` +
+      `Teoretyczne tempo: <strong style="color:var(--green)">${theoreticalMonthFatKg} kg tłuszczu / plan</strong>` +
+      (todayEntry.weight ? ` · Waga: <strong style="color:var(--text)">${todayEntry.weight} kg</strong>` : '') +
+      (todayEntry.note ? `<br>Notatka: <em style="color:var(--text2)">${todayEntry.note}</em>` : '');
+  } else {
+    document.getElementById('today-eaten').textContent = '—';
+    document.getElementById('today-remaining').textContent = plan.dailyLimit;
+    document.getElementById('today-fat-g').innerHTML = `0<span>g</span>`;
+    document.getElementById('ring-circle').style.strokeDashoffset = 226;
+    document.getElementById('today-status-pill').innerHTML = `<span class="pill pill-orange">Wpisz kalorie poniżej</span>`;
+    document.getElementById('today-fat-sub').textContent = 'wpisz kalorie, żeby zobaczyć';
+    document.getElementById('log-form-wrap').style.display = 'block';
+    document.getElementById('log-done-wrap').style.display = 'none';
+  }
+}
+
+function logDay() {
+  const kcal = parseFloat(document.getElementById('log-kcal').value);
+  if (!kcal || kcal < 0) { alert('Wpisz liczbę kalorii!'); return; }
+
+  const weight = parseFloat(document.getElementById('log-weight').value) || null;
+  const note = document.getElementById('log-note').value.trim() || null;
+
+  const history = getHistory();
+  history[todayKey()] = { kcal, weight, note, ts: Date.now() };
+  setHistory(history);
+
+  if (weight) {
+    const profile = DB.get('profile');
+    if (profile) {
+      profile.weight = weight;
+      DB.set('profile', profile);
+    }
+  }
+
+  document.getElementById('log-kcal').value = '';
+  document.getElementById('log-weight').value = '';
+  document.getElementById('log-note').value = '';
+  renderToday();
+}
+
+function editToday() {
+  const history = getHistory();
+  const entry = history[todayKey()];
+  if (entry) {
+    document.getElementById('log-kcal').value = entry.kcal;
+    document.getElementById('log-weight').value = entry.weight || '';
+    document.getElementById('log-note').value = entry.note || '';
+    delete history[todayKey()];
+    setHistory(history);
+  }
+  document.getElementById('log-form-wrap').style.display = 'block';
+  document.getElementById('log-done-wrap').style.display = 'none';
+}
+
+// ─── MONTH ───────────────────────────────────────────────────────────────────
+function renderMonth() {
+  const profile = DB.get('profile');
+  if (!profile) return;
+
+  const { y, m } = today();
+  const history = getHistory();
+  const plan = calcPlan(profile, history);
+
+  document.getElementById('month-label').textContent = `${MONTHS[m-1]} ${y}`;
+  document.getElementById('month-sub').textContent = `Cel: ${profile.goalKg} kg tłuszczu`;
+
+  const fatGoalG = Math.round(profile.goalKg * 1000);
+  const fatDoneG = Math.max(0, Math.round(plan.deficitDone / 8));
+  const pct = Math.min(1, fatDoneG / fatGoalG);
+
+  document.getElementById('month-fat-done').innerHTML = `${fatDoneG}<span style="font-size:16px;">g</span>`;
+  document.getElementById('month-fat-goal').textContent = fatGoalG;
+  document.getElementById('month-prog-bar').style.width = (pct * 100) + '%';
+  document.getElementById('month-prog-pct').textContent = Math.round(pct * 100) + '%';
+
+  const circ = 226;
+  document.getElementById('month-ring').style.strokeDashoffset = circ - pct * circ;
+
+  const onTrack = document.getElementById('month-on-track');
+  if (pct >= 1) {
+    onTrack.innerHTML = `<span class="pill pill-green">🎯 Cel osiągnięty!</span>`;
+  } else {
+    const todayInPlan = Math.max(0, diffDaysInclusive(profile.planStartKey, todayKey()) - 1);
+    const expectedPct = todayInPlan / Math.max(1, plan.planDaysTotal);
+    if (pct >= expectedPct - 0.05) {
+      onTrack.innerHTML = `<span class="pill pill-green">↑ Na dobrej drodze</span>`;
+    } else {
+      onTrack.innerHTML = `<span class="pill pill-red">↓ Zostań w deficycie</span>`;
+    }
+  }
+
+  document.getElementById('m-deficit-done').textContent = Math.round(plan.deficitDone);
+  document.getElementById('m-deficit-goal').textContent = plan.totalDeficitNeeded;
+  document.getElementById('m-days-left').textContent = plan.daysLeft;
+
+  // tomorrow limit uses calorie bank from all previous days including today if logged
+  let tomorrowLimit = '—';
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tkey = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,'0')}-${String(tomorrow.getDate()).padStart(2,'0')}`;
+  if (isInPlanRange(profile, tkey)) {
+    tomorrowLimit = calcDayStats(profile, history, tkey).limit;
+  }
+  document.getElementById('m-tomorrow-limit').textContent = tomorrowLimit;
+
+  // calendar
+  renderCalendar(history, profile);
+
+  // chart
+  renderChart(history, plan.tdee, plan.dailyLimit);
+
+  // log list
+  renderLogList(history, plan.tdee);
+}
+
+
+
+function changeCalendarMonth(delta) {
+  calendarView.m += delta;
+  if (calendarView.m < 1) { calendarView.m = 12; calendarView.y -= 1; }
+  if (calendarView.m > 12) { calendarView.m = 1; calendarView.y += 1; }
+  renderMonth();
+}
+
+function renderCalendar(history, profile) {
+  const y = calendarView.y;
+  const m = calendarView.m;
+  const t = today();
+  const dim = daysInMonth(y, m);
+  const first = new Date(y, m - 1, 1).getDay(); // 0 niedziela
+  const startOffset = (first + 6) % 7; // poniedziałek jako pierwszy
+  const heads = ['Pn','Wt','Śr','Cz','Pt','So','Nd'];
+
+  document.getElementById('calendar-title').textContent = `${MONTHS[m-1]} ${y}`;
+
+  let html = heads.map(h => `<div class="cal-head">${h}</div>`).join('');
+  for (let i = 0; i < startOffset; i++) html += `<button class="cal-day empty" disabled></button>`;
+
+  for (let day = 1; day <= dim; day++) {
+    const key = `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const stats = calcDayStats(profile, history, key);
+    const isToday = day === t.d && m === t.m && y === t.y;
+    const isSelected = key === selectedCalendarKey;
+    const inPlan = isInPlanRange(profile, key);
+    const cls = stats.entry ? (stats.deficit >= planBaseDeficit(profile) ? 'cal-good' : 'cal-bad') : '';
+    const mini = stats.entry
+      ? `${stats.entry.kcal} kcal<br>${stats.deficit >= 0 ? '-' : '+'}${Math.abs(stats.fatG)}g`
+      : (inPlan ? `${stats.limit} kcal` : 'poza planem');
+    html += `<button class="cal-day ${cls} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${!inPlan ? 'empty' : ''}" onclick="selectCalendarDay('${key}')">
+      <div class="cal-num">${day}</div><div class="cal-mini">${mini}</div>
+    </button>`;
+  }
+  document.getElementById('calendar-grid').innerHTML = html;
+  renderSelectedDay(history, profile);
+}
+
+function planBaseDeficit(profile) {
+  return basePlanValues(profile).baseDailyDeficit;
+}
+
+function selectCalendarDay(key) {
+  selectedCalendarKey = key;
+  renderMonth();
+}
+
+function renderSelectedDay(history, profile) {
+  const key = selectedCalendarKey || todayKey();
+  const stats = calcDayStats(profile, history, key);
+  const [yy, mm, dd] = key.split('-').map(Number);
+  const dateObj = new Date(yy, mm - 1, dd);
+  const title = `${DAYS[dateObj.getDay()]}, ${dd} ${MONTHS[mm - 1]} ${yy}`;
+  let html = `<div class="card-title">${title}</div>`;
+  html += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">`;
+  html += `<div><div class="stat-label">Limit dnia</div><div class="stat-val">${stats.limit}</div><div class="stat-unit">kcal</div></div>`;
+  html += `<div><div class="stat-label">Korekta / dzień</div><div class="stat-val" style="color:${stats.bankBefore >= 0 ? 'var(--green)' : 'var(--red)'}">${stats.bankBefore >= 0 ? '+' : ''}${Math.round(stats.bankBefore)}</div><div class="stat-unit">kcal</div></div>`;
+  if (stats.entry) {
+    html += `<div><div class="stat-label">Zjedzone</div><div class="stat-val" style="color:var(--fire2)">${stats.eaten}</div><div class="stat-unit">kcal</div></div>`;
+    html += `<div><div class="stat-label">Tłuszcz</div><div class="stat-val">${stats.fatG}</div><div class="stat-unit">g</div></div>`;
+    html += `</div><hr class="divider" style="margin:14px 0;">`;
+    html += `<div style="font-size:14px; color:var(--text2); line-height:1.6;">Deficyt: <strong style="color:${stats.deficit >= 0 ? 'var(--green)' : 'var(--red)'}">${stats.deficit} kcal</strong><br>Zostało/przekroczono: <strong>${stats.remaining} kcal</strong>`;
+    if (stats.entry.weight) html += `<br>Waga: <strong>${stats.entry.weight} kg</strong>`;
+    if (stats.entry.note) html += `<br>Notatka: <em>${stats.entry.note}</em>`;
+    html += `</div>`;
+  } else {
+    html += `</div><hr class="divider" style="margin:14px 0;">`;
+    if (isInPlanRange(profile, key)) {
+      html += `<div style="font-size:14px; color:var(--text2);">Brak wpisu dla tego dnia. Planowany limit: <strong style="color:var(--text)">${stats.limit} kcal</strong>. Różnica jest rozłożona na <strong>${stats.remainingForThisCalc}</strong> dni.</div>`;
+    } else {
+      html += `<div style="font-size:14px; color:var(--text2);">Ten dzień jest poza zakresem planu. Zmień datę „Plan od / Plan do” w profilu.</div>`;
+    }
+  }
+  document.getElementById('selected-day-card').innerHTML = html;
+}
+
+function renderChart(history, tdee, limitKcal) {
+  const { y, m } = today();
+  const dim = daysInMonth(y, m);
+  const bars = [];
+  for (let d = 1; d <= dim; d++) {
+    const key = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    bars.push({ d, entry: history[key] || null });
+  }
+
+  const maxKcal = Math.max(...bars.map(b => b.entry ? b.entry.kcal : 0), limitKcal, tdee);
+
+  let html = `<div class="chart-bars">`;
+  bars.forEach(({ d, entry }) => {
+    const h = entry ? Math.round((entry.kcal / maxKcal) * 76) : 2;
+    const isToday = d === today().d;
+    let color = entry ? (entry.kcal <= limitKcal ? 'var(--green)' : 'var(--red)') : 'var(--bg3)';
+    if (isToday && !entry) color = 'var(--fire)';
+    html += `<div class="chart-bar" style="height:${h}px; background:${color}; ${isToday ? 'box-shadow: 0 0 6px var(--fire);' : ''}" title="${d}: ${entry ? entry.kcal + ' kcal' : 'brak'}"></div>`;
+  });
+  html += `</div>`;
+  html += `<div style="display:flex; justify-content:space-between; margin-top:6px;">
+    <span style="font-size:10px; color:var(--text3);">1</span>
+    <span style="font-size:10px; color:var(--text3);">${Math.ceil(dim/2)}</span>
+    <span style="font-size:10px; color:var(--text3);">${dim}</span>
+  </div>`;
+  html += `<div style="display:flex; gap:12px; margin-top:8px; flex-wrap:wrap;">
+    <span style="font-size:11px; color:var(--green);">■ W limicie</span>
+    <span style="font-size:11px; color:var(--red);">■ Powyżej limitu</span>
+    <span style="font-size:11px; color:var(--fire);">■ Dziś</span>
+  </div>`;
+
+  document.getElementById('month-chart').innerHTML = html;
+}
+
+function renderLogList(history, tdee) {
+  const entries = Object.entries(history).sort((a, b) => b[0].localeCompare(a[0]));
+  if (!entries.length) {
+    document.getElementById('month-log-list').innerHTML =
+      `<div style="color:var(--text3); font-size:14px; text-align:center; padding:20px 0;">Brak wpisów w tym miesiącu</div>`;
+    return;
+  }
+
+  let html = '';
+  entries.forEach(([key, entry]) => {
+    const [, , d] = key.split('-');
+    const dayNum = parseInt(d);
+    const dateObj = new Date(parseInt(key.split('-')[0]), parseInt(key.split('-')[1]) - 1, dayNum);
+    const deficit = tdee - entry.kcal;
+    const fatG = Math.round(deficit / 8);
+    const sign = deficit >= 0 ? '+' : '-';
+    const col = deficit >= 0 ? 'var(--green)' : 'var(--red)';
+    html += `<div class="log-item">
+      <div>
+        <div class="log-date">${DAYS[dateObj.getDay()]}, ${dayNum} ${MONTHS[dateObj.getMonth()]}</div>
+        <div class="log-sub">${entry.note ? entry.note : 'brak notatki'}${entry.weight ? ' · ' + entry.weight + ' kg' : ''}</div>
+      </div>
+      <div class="log-right">
+        <div class="log-kcal">${entry.kcal} <span style="font-size:12px; color:var(--text3);">kcal</span></div>
+        <div class="log-fat" style="color:${col};">${sign}${Math.abs(fatG)}g tłuszczu</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('month-log-list').innerHTML = html;
+}
+
+// ─── PROFILE DISPLAY ─────────────────────────────────────────────────────────
+function renderProfile() {
+  const p = DB.get('profile');
+  document.getElementById('safe-min-info').textContent = p ? safeMin(p) : '—';
+  if (!p) {
+    document.getElementById('profile-content').innerHTML = '<div style="color:var(--text3);">Brak profilu. Wróć na ekran Dziś.</div>';
+    return;
+  }
+  const tdee = calcTDEE(p);
+  const genderLabel = p.gender === 'm' ? 'Mężczyzna' : 'Kobieta';
+  const actLabels = {
+    '1.2': 'Siedzący', '1.375': 'Lekki', '1.55': 'Umiarkowany', '1.725': 'Aktywny', '1.9': 'Bardzo aktywny'
+  };
+  document.getElementById('profile-content').innerHTML = `
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; font-size: 14px;">
+      <div><span style="color:var(--text3);">Płeć</span><br><strong>${genderLabel}</strong></div>
+      <div><span style="color:var(--text3);">Wiek</span><br><strong>${p.age} lat</strong></div>
+      <div><span style="color:var(--text3);">Wzrost</span><br><strong>${p.height} cm</strong></div>
+      <div><span style="color:var(--text3);">Waga</span><br><strong>${p.weight} kg</strong></div>
+      <div><span style="color:var(--text3);">Aktywność</span><br><strong>${actLabels[String(p.activity)] || p.activity}</strong></div>
+      <div><span style="color:var(--text3);">TDEE</span><br><strong style="color:var(--fire)">${tdee} kcal</strong></div>
+      <div><span style="color:var(--text3);">Cel tłuszczu</span><br><strong style="color:var(--fire2)">${p.goalKg} kg</strong></div>
+      <div><span style="color:var(--text3);">Deficyt całk.</span><br><strong>${p.goalKg * 8000} kcal</strong></div>
+      <div><span style="color:var(--text3);">Plan od</span><br><strong>${p.planStartKey || todayKey()}</strong></div>
+      <div><span style="color:var(--text3);">Plan do</span><br><strong>${p.planEndKey || endOfCurrentMonthKey()}</strong></div>
+    </div>
+  `;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  const profile = DB.get('profile');
+  if (!profile) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-setup').classList.add('active');
+    document.getElementById('s-date-from').value = todayKey();
+    document.getElementById('s-date-to').value = endOfCurrentMonthKey();
+    // hide nav on setup
+    document.querySelector('.nav').style.display = 'none';
+    return;
+  }
+  document.querySelector('.nav').style.display = 'flex';
+  showScreen('today');
+}
+
+// patch showScreen to show nav when profile exists
+const _origShow = showScreen;
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+init();
+</script>
+</body>
+</html>
