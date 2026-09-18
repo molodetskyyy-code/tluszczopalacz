@@ -9,7 +9,6 @@ const DB = {
 
 const MONTHS = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
 const DAYS = ['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
-const ACTIVITY_FACTORS = [1.2, 1.3, 1.4, 1.55];
 const pad = value => String(value).padStart(2, '0');
 const toLocalKey = date => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 const todayKey = () => toLocalKey(new Date());
@@ -19,11 +18,6 @@ let selectedKey = todayKey();
 let modalKey = todayKey();
 let now = new Date();
 let calView = { y: now.getFullYear(), m: now.getMonth() + 1 };
-
-function nearestActivityFactor(value) {
-  const numeric = Number(value);
-  return ACTIVITY_FACTORS.reduce((best, item) => Math.abs(item - numeric) < Math.abs(best - numeric) ? item : best, 1.2);
-}
 
 function deriveWeeklyDeficit(raw) {
   if (Number.isFinite(Number(raw.weeklyDeficit))) return Math.max(0, Math.min(7000, Math.round(Number(raw.weeklyDeficit))));
@@ -36,12 +30,11 @@ function deriveWeeklyDeficit(raw) {
 function normalizeProfile(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Brak poprawnego profilu.');
   const normalized = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     gender: raw.gender,
     age: Number(raw.age),
     height: Number(raw.height),
     startWeight: Number(raw.startWeight ?? raw.weight),
-    activityFactor: nearestActivityFactor(raw.activityFactor ?? raw.activity),
     weeklyDeficit: deriveWeeklyDeficit(raw),
     planStartKey: L.isValidDateKey(raw.planStartKey) ? raw.planStartKey : todayKey()
   };
@@ -63,7 +56,7 @@ function normalizeHistory(rawHistory, normalizedProfile, lenient = false) {
       const eatenValue = raw.eaten ?? raw.kcal;
       const activeValue = raw.activeKcal ?? raw.burned ?? 0;
       const entry = {
-        schemaVersion: 2,
+        schemaVersion: 3,
         eaten: Number(eatenValue),
         activeKcal: Number(activeValue),
         activity: typeof raw.activity === 'string' ? raw.activity.slice(0, 60) : '',
@@ -74,7 +67,7 @@ function normalizeHistory(rawHistory, normalizedProfile, lenient = false) {
       const entryErrors = L.validateEntry(entry);
       if (entryErrors.length) throw new Error(`${key}: ${entryErrors[0]}`);
 
-      const hasSnapshot = [raw.bmr, raw.baseTdee, raw.plannedDeficit, raw.calorieLimit].every(value => Number.isFinite(Number(value)));
+      const hasSnapshot = Number(raw.schemaVersion) >= 3 && [raw.bmr, raw.baseTdee, raw.plannedDeficit, raw.calorieLimit].every(value => Number.isFinite(Number(value)));
       let plan;
       if (hasSnapshot) {
         plan = {
@@ -123,7 +116,7 @@ function migrateStoredData() {
 function profile() {
   const raw = DB.get('profile');
   if (!raw) return null;
-  if (raw.schemaVersion !== 2) return migrateStoredData();
+  if (raw.schemaVersion !== 3) return migrateStoredData();
   try { return normalizeProfile(raw); } catch { return null; }
 }
 
@@ -183,12 +176,11 @@ function showScreen(name) {
 function saveProfile() {
   const current = profile();
   const candidate = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     gender: s('s-gender').value,
     age: Number(s('s-age').value),
     height: Number(s('s-height').value),
     startWeight: Number(s('s-weight').value),
-    activityFactor: Number(s('s-activity').value),
     weeklyDeficit: Number(s('s-weekly').value),
     planStartKey: s('s-date-from').value
   };
@@ -213,7 +205,6 @@ function editProfile() {
   s('s-age').value = p.age;
   s('s-height').value = p.height;
   s('s-weight').value = p.startWeight;
-  s('s-activity').value = p.activityFactor;
   s('s-weekly').value = p.weeklyDeficit;
   s('s-date-from').value = p.planStartKey;
   s('setup-warning').classList.add('hide');
@@ -231,7 +222,6 @@ function renderToday() {
   const warning = s('today-warning');
   let warningText = '';
   if (selectedKey < p.planStartKey) warningText = `Plan zaczyna się ${p.planStartKey}.`;
-  else if (stats.needsActive > 0) warningText = `⚠️ Sam limit jedzenia osiągnął bezpieczne minimum. Aby utrzymać tempo, potrzeba średnio jeszcze ${stats.needsActive} aktywnych kcal dziennie albo łagodniejszego celu.`;
   warning.textContent = warningText;
   warning.classList.toggle('hide', !warningText);
 
@@ -260,8 +250,8 @@ function renderToday() {
   const weight = L.latestWeightOnOrBefore(p, history, selectedKey);
   const delta = weight - p.startWeight;
   s('m-limit').textContent = Math.round(stats.effectiveLimit);
-  s('m-tdee').textContent = Math.round(stats.baseTdee);
-  s('m-bmr').textContent = `BMR ${Math.round(stats.bmr)} kcal`;
+  s('m-tdee').textContent = Math.round(stats.bmr);
+  s('m-bmr').textContent = 'bazowe spalanie';
   s('m-weight').textContent = weight.toFixed(1);
   s('m-weight-delta').textContent = `${delta > 0 ? '+' : ''}${delta.toFixed(1)} kg`;
   s('m-days').textContent = stats.daysRemaining || '—';
@@ -365,7 +355,7 @@ function renderSelected() {
   heading.style.color = 'var(--txt)';
   container.append(heading);
   appendTextLine(container, 'Bazowy limit dnia', `${Math.round(stats.calorieLimit)} kcal`);
-  appendTextLine(container, 'BMR / bazowe TDEE', `${Math.round(stats.bmr)} / ${Math.round(stats.baseTdee)} kcal`);
+  appendTextLine(container, 'BMR', `${Math.round(stats.bmr)} kcal`);
   appendTextLine(container, 'Planowany deficyt', `${Math.round(stats.plannedDeficit)} kcal`);
   if (stats.entry) {
     appendTextLine(container, 'Zjedzone', `${Math.round(stats.eaten)} kcal`);
@@ -466,11 +456,10 @@ function renderProfile() {
   const history = hist();
   const weight = L.latestWeightOnOrBefore(p, history, todayKey());
   const bmr = L.bmrFor(p, weight);
-  const baseTdee = L.baseTdeeFor(p, weight);
   const table = node('div', 'table');
   table.append(
     statBox('BMR', `${bmr} kcal`),
-    statBox('Bazowe TDEE', `${baseTdee} kcal`),
+    statBox('Aktualna waga', `${weight.toFixed(1)} kg`),
     statBox('Cel tygodniowy', `${p.weeklyDeficit} kcal`),
     statBox('Plan od', p.planStartKey)
   );
@@ -518,14 +507,14 @@ function saveDay() {
   const history = hist();
   const existing = history[modalKey];
   let plan;
-  if (existing && [existing.bmr, existing.baseTdee, existing.plannedDeficit, existing.calorieLimit].every(Number.isFinite)) {
+  if (existing && existing.schemaVersion >= 3 && [existing.bmr, existing.baseTdee, existing.plannedDeficit, existing.calorieLimit].every(Number.isFinite)) {
     plan = existing;
   } else {
     const temporary = { ...history, [modalKey]: { weight: draft.weight } };
     plan = L.dayPlan(p, temporary, modalKey);
   }
   history[modalKey] = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     eaten: draft.eaten,
     activeKcal: draft.activeKcal,
     activity: draft.activity,
@@ -561,7 +550,7 @@ function refresh() {
 }
 
 function exportBackup() {
-  const payload = { schemaVersion: 2, profile: DB.get('profile'), history_all: hist(), exportedAt: new Date().toISOString() };
+  const payload = { schemaVersion: 3, profile: DB.get('profile'), history_all: hist(), exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const anchor = document.createElement('a');
   const url = URL.createObjectURL(blob);

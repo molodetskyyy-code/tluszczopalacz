@@ -8,12 +8,13 @@ Prosta aplikacja PWA do pilnowania tygodniowego deficytu kalorii. Działa lokaln
 - pierwszy niepełny tydzień ma cel proporcjonalny do liczby pozostałych dni;
 - pusty zakończony dzień jest rozliczany tak, jakby wykonano jego plan; dopiero zapisany wynik tworzy korektę dla kolejnych dni;
 - BMR jest liczone wzorem Mifflina–St Jeora;
-- bazowe TDEE = BMR × wybrany poziom codziennej aktywności bez treningu;
-- faktyczny deficyt dnia = bazowe TDEE + aktywne kcal − zjedzone kcal;
-- po zapisaniu dnia jego BMR, TDEE, limit i planowany deficyt są zamrożone;
+- wydatek dnia = BMR + aktywne kcal wpisane przez użytkownika;
+- faktyczny deficyt dnia = BMR + aktywne kcal − zjedzone kcal;
+- aplikacja nie stosuje mnożnika aktywności ani minimalnego limitu kalorii;
+- po zapisaniu dnia jego BMR, limit i planowany deficyt są zamrożone;
 - różnica względem celu jest rozkładana wyłącznie na kolejne dni do niedzieli;
 - aktywne kcal zwiększają limit dnia po ich wpisaniu;
-- rekomendowany limit nie spada poniżej 1200 kcal dla kobiet i 1500 kcal dla mężczyzn. Jeśli cel wymaga więcej, aplikacja pokazuje potrzebną aktywność lub sugeruje łagodniejszy cel.
+- limit jedzenia = BMR + aktywne kcal − wymagany deficyt dnia.
 
 Obliczenia BMR i wydatku energetycznego są szacunkowe i nie zastępują porady lekarza lub dietetyka.
 

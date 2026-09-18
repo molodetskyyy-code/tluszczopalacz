@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tluszczopalacz-v21';
+const CACHE_NAME = 'tluszczopalacz-v22';
 const ASSETS = ['./', './index.html', './logic.js', './app.js', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {

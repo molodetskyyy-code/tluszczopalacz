@@ -68,17 +68,15 @@
     return addDays(weekStartKey(key), 6);
   }
 
-  function safeMinimum(profile) {
-    return profile.gender === 'f' ? 1200 : 1500;
-  }
-
   function bmrFor(profile, weight) {
     const base = 10 * weight + 6.25 * profile.height - 5 * profile.age;
     return Math.round(base + (profile.gender === 'm' ? 5 : -161));
   }
 
   function baseTdeeFor(profile, weight) {
-    return Math.round(bmrFor(profile, weight) * profile.activityFactor);
+    // W tej aplikacji użytkownik podaje aktywne kcal osobno, więc nie
+    // stosujemy mnożnika aktywności. Bazą wydatku jest wyłącznie BMR.
+    return bmrFor(profile, weight);
   }
 
   function latestWeightOnOrBefore(profile, history, key) {
@@ -159,7 +157,7 @@
 
   function dayPlan(profile, history, key) {
     const entry = history && history[key];
-    if (entry && [entry.bmr, entry.baseTdee, entry.plannedDeficit, entry.calorieLimit].every(isFiniteNumber)) {
+    if (entry && entry.schemaVersion >= 3 && [entry.bmr, entry.baseTdee, entry.plannedDeficit, entry.calorieLimit].every(isFiniteNumber)) {
       return {
         key,
         bmr: entry.bmr,
@@ -192,11 +190,8 @@
     const remaining = Math.max(0, state.remaining);
     const daysRemaining = Math.max(1, diffDaysInclusive(key, weekEndKey(key)));
     const requiredDailyDeficit = Math.round(remaining / daysRemaining);
-    const minimum = safeMinimum(profile);
-    const rawLimit = baseTdee - requiredDailyDeficit;
-    const calorieLimit = Math.max(minimum, rawLimit);
-    const plannedFromFood = Math.max(0, baseTdee - calorieLimit);
-    const needsActive = Math.max(0, requiredDailyDeficit - plannedFromFood);
+    const calorieLimit = baseTdee - requiredDailyDeficit;
+    const needsActive = 0;
 
     return {
       key, bmr, baseTdee, plannedDeficit: requiredDailyDeficit,
@@ -211,7 +206,7 @@
     const eaten = entry ? toNumber(entry.eaten ?? entry.kcal, 0) : 0;
     const activeKcal = entry ? toNumber(entry.activeKcal ?? entry.burned, 0) : 0;
     const deficit = entry ? actualDeficit(entry) : 0;
-    const effectiveLimit = plan.calorieLimit + activeKcal;
+    const effectiveLimit = plan.baseTdee + activeKcal - plan.plannedDeficit;
     return {
       ...plan,
       entry,
@@ -260,7 +255,6 @@
     if (!isFiniteNumber(profile.age) || profile.age < 13 || profile.age > 100) errors.push('Wiek musi mieścić się w zakresie 13–100 lat.');
     if (!isFiniteNumber(profile.height) || profile.height < 120 || profile.height > 230) errors.push('Wzrost musi mieścić się w zakresie 120–230 cm.');
     if (!isFiniteNumber(profile.startWeight) || profile.startWeight < 30 || profile.startWeight > 350) errors.push('Waga musi mieścić się w zakresie 30–350 kg.');
-    if (!isFiniteNumber(profile.activityFactor) || profile.activityFactor < 1.2 || profile.activityFactor > 2) errors.push('Wybierz poprawny poziom aktywności codziennej.');
     if (!isFiniteNumber(profile.weeklyDeficit) || profile.weeklyDeficit < 0 || profile.weeklyDeficit > 7000) errors.push('Deficyt tygodniowy musi mieścić się w zakresie 0–7000 kcal.');
     if (!isValidDateKey(profile.planStartKey)) errors.push('Wybierz poprawną datę rozpoczęcia.');
     return errors;
@@ -289,7 +283,6 @@
     isFiniteNumber,
     isValidDateKey,
     latestWeightOnOrBefore,
-    safeMinimum,
     stateBeforeDay,
     totalDeficit,
     validateEntry,

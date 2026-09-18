@@ -4,12 +4,11 @@ const assert = require('node:assert/strict');
 const L = require('./logic.js');
 
 const profile = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   gender: 'm',
   age: 30,
   height: 180,
   startWeight: 80,
-  activityFactor: 1.2,
   weeklyDeficit: 3500,
   planStartKey: '2026-09-14'
 };
@@ -25,9 +24,10 @@ assert.equal(L.dayPlan(fridayStart, {}, '2026-09-18').plannedDeficit, 500);
 
 const mondayUnder = {
   '2026-09-14': {
+    schemaVersion: 3,
     eaten: 2100,
     activeKcal: 0,
-    bmr: 1780,
+    bmr: 2300,
     baseTdee: 2300,
     plannedDeficit: 500,
     calorieLimit: 1800,
@@ -49,9 +49,10 @@ assert.equal(L.dayPlan(profile, mondayUnder, '2026-09-16').plannedDeficit, 550, 
 const goal7000 = { ...profile, weeklyDeficit: 7000 };
 const wednesdayShortfall = {
   '2026-09-16': {
+    schemaVersion: 3,
     eaten: 2000,
     activeKcal: 0,
-    bmr: 1800,
+    bmr: 2500,
     baseTdee: 2500,
     plannedDeficit: 1000,
     calorieLimit: 1500,
@@ -77,6 +78,7 @@ assert.equal(savedWednesdayProgress.daysLeft, 4);
 assert.equal(savedWednesdayProgress.dailyRequired, 1125);
 
 const withActivity = {
+  schemaVersion: 3,
   baseTdee: 2300,
   eaten: 2200,
   activeKcal: 400
@@ -91,7 +93,7 @@ const frozenMonday = {
     eaten: 1800,
     activeKcal: 200,
     weight: 70,
-    bmr: 1775,
+    bmr: 2130,
     baseTdee: 2130,
     plannedDeficit: 550,
     calorieLimit: 1580,
@@ -100,12 +102,35 @@ const frozenMonday = {
 };
 const historical = L.dayPlan({ ...profile, startWeight: 60 }, frozenMonday, '2026-09-14');
 assert.equal(historical.calorieLimit, 1800, 'zmiana późniejszej wagi nie może zmienić zapisanego limitu');
-assert.equal(historical.baseTdee, 2300, 'historyczne TDEE musi pozostać zamrożone');
+assert.equal(historical.baseTdee, 2300, 'historyczne bazowe spalanie musi pozostać zamrożone');
 
 const aggressive = { ...profile, gender: 'f', startWeight: 50, height: 160, weeklyDeficit: 7000 };
 const safePlan = L.dayPlan(aggressive, {}, '2026-09-14');
-assert.equal(safePlan.calorieLimit, 1200, 'limit nie może spaść poniżej minimum');
-assert.ok(safePlan.needsActive > 0, 'brakujący deficyt powinien być pokazany jako potrzebna aktywność');
+assert.equal(safePlan.calorieLimit, 189, 'aplikacja nie stosuje minimalnego limitu kalorii');
+
+const screenshotEntry = {
+  schemaVersion: 3,
+  bmr: 1968,
+  baseTdee: 1968,
+  plannedDeficit: 1000,
+  requiredDailyDeficit: 1000,
+  calorieLimit: 968,
+  activeKcal: 1200,
+  eaten: 2000,
+  actualDeficit: 1168
+};
+const screenshotStats = L.entryStats(goal7000, { '2026-09-18': screenshotEntry }, '2026-09-18');
+assert.equal(screenshotStats.effectiveLimit, 2168, 'limit = BMR + aktywne kcal - planowany deficyt');
+assert.equal(screenshotStats.deficit, 1168, 'deficyt = BMR + aktywne kcal - zjedzone kcal');
+
+const screenshotProfile = { ...goal7000, startWeight: 98.8, planStartKey: '2026-09-18' };
+const screenshotHistory = { '2026-09-18': screenshotEntry };
+const saturdayAfterScreenshot = L.dayPlan(screenshotProfile, screenshotHistory, '2026-09-19');
+const sundayAfterScreenshot = L.dayPlan(screenshotProfile, screenshotHistory, '2026-09-20');
+assert.equal(saturdayAfterScreenshot.plannedDeficit, 916);
+assert.equal(sundayAfterScreenshot.plannedDeficit, 916, 'pusta sobota nie może ponownie zaostrzyć niedzieli');
+assert.equal(saturdayAfterScreenshot.calorieLimit, 1052);
+assert.equal(sundayAfterScreenshot.calorieLimit, 1052, 'przyszłe puste dni mają równy limit');
 
 assert.deepEqual(L.validateProfile({ ...profile, age: -20 }).length > 0, true);
 assert.deepEqual(L.validateEntry({ eaten: 2000, activeKcal: -1, weight: null, note: '' }).length > 0, true);
