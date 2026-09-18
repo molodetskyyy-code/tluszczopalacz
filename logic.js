@@ -125,6 +125,38 @@
       .sort((a, b) => a[0].localeCompare(b[0]));
   }
 
+  function stateBeforeDay(profile, history, key) {
+    const start = weekStartKey(key);
+    const end = weekEndKey(key);
+    const activeStart = profile.planStartKey > start ? profile.planStartKey : start;
+    const target = weekTarget(profile, key);
+    let remaining = target;
+    let assumedDone = 0;
+    let recordedDone = 0;
+
+    if (target <= 0 || key <= activeStart) {
+      return { start, end, activeStart, target, remaining, assumedDone, recordedDone };
+    }
+
+    for (let cursor = activeStart; cursor < key && cursor <= end; cursor = addDays(cursor, 1)) {
+      const daysIncludingCursor = diffDaysInclusive(cursor, end);
+      const plannedForDay = Math.round(Math.max(0, remaining) / daysIncludingCursor);
+      const entry = history && history[cursor];
+      if (entry) {
+        const actual = actualDeficit(entry);
+        recordedDone += actual;
+        remaining -= actual;
+      } else {
+        // Pusty zakończony dzień uznajemy za wykonany zgodnie z planem.
+        // Dzięki temu samo przechodzenie po przyszłych datach nie zaostrza celu.
+        assumedDone += plannedForDay;
+        remaining -= plannedForDay;
+      }
+    }
+
+    return { start, end, activeStart, target, remaining, assumedDone, recordedDone };
+  }
+
   function dayPlan(profile, history, key) {
     const entry = history && history[key];
     if (entry && [entry.bmr, entry.baseTdee, entry.plannedDeficit, entry.calorieLimit].every(isFiniteNumber)) {
@@ -155,12 +187,9 @@
       };
     }
 
-    const start = weekStartKey(key);
-    const planWeekStart = profile.planStartKey > start ? profile.planStartKey : start;
-    const target = weekTarget(profile, key);
-    const doneBefore = entriesBetween(history, planWeekStart, addDays(key, -1))
-      .reduce((sum, pair) => sum + actualDeficit(pair[1]), 0);
-    const remaining = Math.max(0, target - doneBefore);
+    const state = stateBeforeDay(profile, history, key);
+    const target = state.target;
+    const remaining = Math.max(0, state.remaining);
     const daysRemaining = Math.max(1, diffDaysInclusive(key, weekEndKey(key)));
     const requiredDailyDeficit = Math.round(remaining / daysRemaining);
     const minimum = safeMinimum(profile);
@@ -197,18 +226,26 @@
   }
 
   function weekProgress(profile, history, key) {
-    const start = weekStartKey(key);
-    const end = weekEndKey(key);
-    const planWeekStart = profile.planStartKey > start ? profile.planStartKey : start;
-    const target = weekTarget(profile, key);
-    const done = target === 0 ? 0 : entriesBetween(history, planWeekStart, key)
-      .reduce((sum, pair) => sum + actualDeficit(pair[1]), 0);
-    const remaining = Math.max(0, target - done);
-    const daysLeft = key > end ? 0 : Math.max(1, diffDaysInclusive(key, end));
+    const state = stateBeforeDay(profile, history, key);
+    const entry = history && history[key];
+    const currentActual = entry ? actualDeficit(entry) : 0;
+    const rawRemaining = state.remaining - currentActual;
+    const done = state.target - rawRemaining;
+    const remaining = Math.max(0, rawRemaining);
+    let nextDay = entry ? addDays(key, 1) : key;
+    if (nextDay < state.activeStart) nextDay = state.activeStart;
+    const daysLeft = nextDay > state.end ? 0 : diffDaysInclusive(nextDay, state.end);
     return {
-      start, end, target, done, remaining, daysLeft,
+      start: state.start,
+      end: state.end,
+      target: state.target,
+      done,
+      assumedDone: state.assumedDone,
+      recordedDone: state.recordedDone + currentActual,
+      remaining,
+      daysLeft,
       dailyRequired: daysLeft ? Math.round(remaining / daysLeft) : 0,
-      percent: target > 0 ? Math.max(0, Math.min(1, done / target)) : 0
+      percent: state.target > 0 ? Math.max(0, Math.min(1, done / state.target)) : 0
     };
   }
 
@@ -253,6 +290,7 @@
     isValidDateKey,
     latestWeightOnOrBefore,
     safeMinimum,
+    stateBeforeDay,
     totalDeficit,
     validateEntry,
     validateProfile,

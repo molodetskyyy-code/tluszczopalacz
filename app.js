@@ -423,7 +423,8 @@ function renderProgress() {
   s('p-line').style.width = `${Math.round(week.percent * 100)}%`;
   const tomorrow = L.addDays(key, 1);
   s('p-tom').textContent = `${Math.round(L.dayPlan(p, history, tomorrow).calorieLimit)} kcal`;
-  s('p-desc').textContent = `Pozostało ${Math.round(week.remaining)} kcal do niedzieli. Średnio ${Math.round(week.dailyRequired)} kcal deficytu dziennie przez ${week.daysLeft} dni.`;
+  const assumed = week.assumedDone > 0 ? ` Za puste wcześniejsze dni przyjęto planowo ${Math.round(week.assumedDone)} kcal.` : '';
+  s('p-desc').textContent = `Pozostało ${Math.round(week.remaining)} kcal do niedzieli. Średnio ${Math.round(week.dailyRequired)} kcal deficytu dziennie przez ${week.daysLeft} dni.${assumed}`;
   renderWeightChart(history, p);
   renderAllList(history, p);
 }

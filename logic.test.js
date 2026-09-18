@@ -41,6 +41,41 @@ const mondayOver = {
 };
 assert.equal(L.dayPlan(profile, mondayOver, '2026-09-15').plannedDeficit, 450, 'nadwyżka deficytu zmniejsza cele kolejnych dni');
 
+assert.equal(L.dayPlan(profile, {}, '2026-09-14').plannedDeficit, 500);
+assert.equal(L.dayPlan(profile, {}, '2026-09-16').plannedDeficit, 500, 'puste wcześniejsze dni są uznawane za wykonane zgodnie z planem');
+assert.equal(L.dayPlan(profile, {}, '2026-09-20').plannedDeficit, 500, 'samo oglądanie przyszłości nie może zaostrzać celu');
+assert.equal(L.dayPlan(profile, mondayUnder, '2026-09-16').plannedDeficit, 550, 'pusty wtorek zachowuje skorygowany po poniedziałku cel');
+
+const goal7000 = { ...profile, weeklyDeficit: 7000 };
+const wednesdayShortfall = {
+  '2026-09-16': {
+    eaten: 2000,
+    activeKcal: 0,
+    bmr: 1800,
+    baseTdee: 2500,
+    plannedDeficit: 1000,
+    calorieLimit: 1500,
+    actualDeficit: 500
+  }
+};
+assert.equal(L.dayPlan(goal7000, {}, '2026-09-16').plannedDeficit, 1000, 'dwa puste dni odejmują po 1000 od celu 7000');
+assert.equal(L.dayPlan(goal7000, wednesdayShortfall, '2026-09-17').plannedDeficit, 1125, 'brakujące 500 kcal ze środy rozkłada się na cztery dni');
+
+const wednesdayBonus = {
+  '2026-09-16': { ...wednesdayShortfall['2026-09-16'], eaten: 1000, actualDeficit: 1500 }
+};
+assert.equal(L.dayPlan(goal7000, wednesdayBonus, '2026-09-17').plannedDeficit, 875, 'bonus 500 kcal ze środy rozkłada się na cztery dni');
+
+const emptyWednesdayProgress = L.weekProgress(goal7000, {}, '2026-09-16');
+assert.equal(emptyWednesdayProgress.assumedDone, 2000);
+assert.equal(emptyWednesdayProgress.remaining, 5000);
+assert.equal(emptyWednesdayProgress.dailyRequired, 1000);
+
+const savedWednesdayProgress = L.weekProgress(goal7000, wednesdayShortfall, '2026-09-16');
+assert.equal(savedWednesdayProgress.remaining, 4500);
+assert.equal(savedWednesdayProgress.daysLeft, 4);
+assert.equal(savedWednesdayProgress.dailyRequired, 1125);
+
 const withActivity = {
   baseTdee: 2300,
   eaten: 2200,

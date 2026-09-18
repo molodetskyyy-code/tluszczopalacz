@@ -6,6 +6,7 @@ Prosta aplikacja PWA do pilnowania tygodniowego deficytu kalorii. Działa lokaln
 
 - tydzień trwa od poniedziałku do niedzieli;
 - pierwszy niepełny tydzień ma cel proporcjonalny do liczby pozostałych dni;
+- pusty zakończony dzień jest rozliczany tak, jakby wykonano jego plan; dopiero zapisany wynik tworzy korektę dla kolejnych dni;
 - BMR jest liczone wzorem Mifflina–St Jeora;
 - bazowe TDEE = BMR × wybrany poziom codziennej aktywności bez treningu;
 - faktyczny deficyt dnia = bazowe TDEE + aktywne kcal − zjedzone kcal;
