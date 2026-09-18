@@ -18,6 +18,7 @@ let selectedKey = todayKey();
 let modalKey = todayKey();
 let now = new Date();
 let calView = { y: now.getFullYear(), m: now.getMonth() + 1 };
+let progressView = { y: now.getFullYear(), m: now.getMonth() + 1 };
 
 function deriveWeeklyDeficit(raw) {
   if (Number.isFinite(Number(raw.weeklyDeficit))) return Math.max(0, Math.min(7000, Math.round(Number(raw.weeklyDeficit))));
@@ -415,8 +416,43 @@ function renderProgress() {
   s('p-tom').textContent = `${Math.round(L.dayPlan(p, history, tomorrow).calorieLimit)} kcal`;
   const assumed = week.assumedDone > 0 ? ` Za puste wcześniejsze dni przyjęto planowo ${Math.round(week.assumedDone)} kcal.` : '';
   s('p-desc').textContent = `Pozostało ${Math.round(week.remaining)} kcal do niedzieli. Średnio ${Math.round(week.dailyRequired)} kcal deficytu dziennie przez ${week.daysLeft} dni.${assumed}`;
+  renderMonthSummary(p, history);
   renderWeightChart(history, p);
   renderAllList(history, p);
+}
+
+function renderMonthSummary(p, history) {
+  const summary = L.monthSummary(p, history, progressView.y, progressView.m, todayKey());
+  const format = value => Math.round(value).toLocaleString('pl-PL');
+  s('pm-title').textContent = `${MONTHS[progressView.m - 1]} ${progressView.y}`;
+  s('pm-def').textContent = `${format(summary.totalDeficit)} kcal`;
+  s('pm-eaten').textContent = `${format(summary.totalEaten)} kcal`;
+  s('pm-active').textContent = `${format(summary.totalActiveKcal)} kcal`;
+  s('pm-days').textContent = String(summary.daysLogged);
+  if (!summary.daysLogged) {
+    s('pm-desc').textContent = 'Brak zapisanych dni w tym miesiącu.';
+  } else {
+    const fat = Math.abs(summary.estimatedFatKg).toFixed(2).replace('.', ',');
+    const effect = summary.totalDeficit >= 0 ? `szacowana redukcja ${fat} kg tłuszczu` : `nadwyżka odpowiadająca około ${fat} kg tłuszczu`;
+    s('pm-desc').textContent = `Średni realny deficyt: ${format(summary.averageDeficit)} kcal na wpisany dzień · ${effect}.`;
+  }
+  const current = new Date();
+  const isCurrentMonth = progressView.y === current.getFullYear() && progressView.m === current.getMonth() + 1;
+  s('pm-next').disabled = isCurrentMonth;
+  s('pm-next').style.opacity = isCurrentMonth ? '.35' : '1';
+}
+
+function changeProgressMonth(amount) {
+  const next = { y: progressView.y, m: progressView.m + amount };
+  if (next.m < 1) { next.m = 12; next.y -= 1; }
+  if (next.m > 12) { next.m = 1; next.y += 1; }
+  const current = new Date();
+  const currentIndex = current.getFullYear() * 12 + current.getMonth();
+  const nextIndex = next.y * 12 + next.m - 1;
+  if (nextIndex > currentIndex) return;
+  progressView = next;
+  const p = profile();
+  if (p) renderMonthSummary(p, hist());
 }
 
 function renderWeightChart(history, p) {

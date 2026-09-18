@@ -15,6 +15,7 @@ Prosta aplikacja PWA do pilnowania tygodniowego deficytu kalorii. Działa lokaln
 - różnica względem celu jest rozkładana wyłącznie na kolejne dni do niedzieli;
 - aktywne kcal zwiększają limit dnia po ich wpisaniu;
 - limit jedzenia = BMR + aktywne kcal − wymagany deficyt dnia.
+- zakładka „Postęp” pokazuje realne podsumowanie wybranego miesiąca wyłącznie z zapisanych dni: deficyt, zjedzone i aktywne kcal, średnią oraz szacowaną zmianę tłuszczu.
 
 Obliczenia BMR i wydatku energetycznego są szacunkowe i nie zastępują porady lekarza lub dietetyka.
 

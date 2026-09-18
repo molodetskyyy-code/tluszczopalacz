@@ -244,6 +244,38 @@
     };
   }
 
+  function monthSummary(profile, history, year, month, throughKey) {
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+      throw new Error('Nieprawidłowy miesiąc.');
+    }
+    const firstKey = `${year}-${pad(month)}-01`;
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const lastKey = `${year}-${pad(month)}-${pad(lastDay)}`;
+    const from = profile.planStartKey > firstKey ? profile.planStartKey : firstKey;
+    const cutoff = throughKey && isValidDateKey(throughKey) && throughKey < lastKey ? throughKey : lastKey;
+    const entries = from <= cutoff ? entriesBetween(history, from, cutoff) : [];
+    const totals = entries.reduce((sum, pair) => {
+      const entry = pair[1];
+      sum.deficit += actualDeficit(entry);
+      sum.eaten += toNumber(entry.eaten ?? entry.kcal, 0);
+      sum.activeKcal += toNumber(entry.activeKcal ?? entry.burned, 0);
+      return sum;
+    }, { deficit: 0, eaten: 0, activeKcal: 0 });
+    const daysLogged = entries.length;
+    return {
+      year,
+      month,
+      firstKey,
+      lastKey,
+      daysLogged,
+      totalDeficit: Math.round(totals.deficit),
+      totalEaten: Math.round(totals.eaten),
+      totalActiveKcal: Math.round(totals.activeKcal),
+      averageDeficit: daysLogged ? Math.round(totals.deficit / daysLogged) : 0,
+      estimatedFatKg: totals.deficit / 7700
+    };
+  }
+
   function totalDeficit(profile, history, throughKey) {
     return entriesBetween(history, profile.planStartKey, throughKey)
       .reduce((sum, pair) => sum + actualDeficit(pair[1]), 0);
@@ -283,6 +315,7 @@
     isFiniteNumber,
     isValidDateKey,
     latestWeightOnOrBefore,
+    monthSummary,
     stateBeforeDay,
     totalDeficit,
     validateEntry,

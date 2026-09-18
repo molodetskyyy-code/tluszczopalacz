@@ -132,6 +132,25 @@ assert.equal(sundayAfterScreenshot.plannedDeficit, 916, 'pusta sobota nie może 
 assert.equal(saturdayAfterScreenshot.calorieLimit, 1052);
 assert.equal(sundayAfterScreenshot.calorieLimit, 1052, 'przyszłe puste dni mają równy limit');
 
+const monthlyHistory = {
+  '2026-09-01': { baseTdee: 2000, activeKcal: 0, eaten: 1000, actualDeficit: 1000 },
+  '2026-09-14': { baseTdee: 2000, activeKcal: 0, eaten: 1500, actualDeficit: 500 },
+  '2026-09-15': { baseTdee: 2000, activeKcal: 200, eaten: 2300, actualDeficit: -100 },
+  '2026-09-25': { baseTdee: 2000, activeKcal: 500, eaten: 1500, actualDeficit: 1000 },
+  '2026-10-01': { baseTdee: 2000, activeKcal: 0, eaten: 1200, actualDeficit: 800 }
+};
+const september = L.monthSummary(profile, monthlyHistory, 2026, 9, '2026-09-18');
+assert.equal(september.daysLogged, 2, 'miesiąc liczy tylko wpisy po starcie planu i nie uwzględnia przyszłości');
+assert.equal(september.totalDeficit, 400);
+assert.equal(september.totalEaten, 3800);
+assert.equal(september.totalActiveKcal, 200);
+assert.equal(september.averageDeficit, 200);
+assert.ok(Math.abs(september.estimatedFatKg - 400 / 7700) < 1e-10);
+
+const october = L.monthSummary(profile, monthlyHistory, 2026, 10, '2026-10-31');
+assert.equal(october.daysLogged, 1, 'wpisy z innych miesięcy nie mogą się mieszać');
+assert.equal(october.totalDeficit, 800);
+
 assert.deepEqual(L.validateProfile({ ...profile, age: -20 }).length > 0, true);
 assert.deepEqual(L.validateEntry({ eaten: 2000, activeKcal: -1, weight: null, note: '' }).length > 0, true);
 
