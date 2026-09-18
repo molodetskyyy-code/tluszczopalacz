@@ -1,7 +1,7 @@
 {
   "name": "Tłuszczopalacz",
   "short_name": "Tłuszcz",
-  "description": "Elastyczny licznik spalania tłuszczu",
+  "description": "Tygodniowy licznik deficytu kalorii z BMR i aktywnymi kcal",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
